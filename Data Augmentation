@@ -1,0 +1,52 @@
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
+import os
+from tensorflow.keras.preprocessing.image import load_img, img_to_array
+
+# Ensure the directory for saving augmented images exists
+output_dir = "/content/preview"
+os.makedirs(output_dir, exist_ok=True)
+
+# Define the ImageDataGenerator with all parameters
+datagen = ImageDataGenerator(
+    featurewise_center=True,                # Set input mean to 0 over the dataset
+    samplewise_center=True,                 # Set each sample mean to 0
+    featurewise_std_normalization=True,     # Divide inputs by dataset std
+    samplewise_std_normalization=True,      # Divide each input by its std
+    zca_whitening=False,                    # Apply ZCA whitening
+    zca_epsilon=1e-06,                      # Epsilon for ZCA whitening
+    rotation_range=20,                      # Rotate images randomly within range
+    width_shift_range=0.2,                  # Randomly shift images horizontally
+    height_shift_range=0.2,                 # Randomly shift images vertically
+    brightness_range=(0.8, 1.2),            # Random brightness adjustment
+    shear_range=20,                         # Shear transformation in degrees
+    zoom_range=0.2,                         # Random zooming
+    channel_shift_range=50.0,               # Randomly shift channels
+    fill_mode='nearest',                    # Fill mode for points outside boundaries
+    cval=0.0,                               # Value used when fill_mode is 'constant'
+    # horizontal_flip=True,                   # Randomly flip images horizontally
+    # vertical_flip=True,                     # Randomly flip images vertically
+    rescale=1.0/255.0,                      # Rescale pixel values
+    preprocessing_function=None,            # Function applied to each image
+    data_format='channels_last',            # Format: 'channels_last' or 'channels_first'
+    validation_split=0.2,                   # Fraction of images reserved for validation
+    interpolation_order=1,                  # Order of interpolation for resizing
+    dtype='float32'                         # Data type of output
+)
+
+# Load and preprocess the image
+img_path = "/content/augmentation img.jpg"  # Replace with your image path
+img = load_img(img_path)               # Load image as a PIL object
+x = img_to_array(img)                  # Convert image to a NumPy array
+x = x.reshape((1,) + x.shape)          # Add batch dimension
+
+# Fit the generator (necessary when featurewise_center or featurewise_std_normalization is True)
+datagen.fit(x)
+
+# Generate augmented images
+i = 0
+for batch in datagen.flow(x, batch_size=1, save_to_dir=output_dir, save_prefix='cat', save_format='jpg'):
+    i += 1
+    if i > 150:  # Generate 20 images
+        break
+
+print(f"Augmented images saved to: {output_dir}")
